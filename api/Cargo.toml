@@ -1,12 +1,12 @@
 [package]
-name = "axum-example-api"
+name = "api"
 version = "0.1.0"
 authors = ["Yoshiera Huang <huangjasper@126.com>"]
 edition = "2021"
 publish = false
 
 [dependencies]
-axum-example-core = { path = "../core" }
+core = { path = "../core" }
 tokio = { version = "1.23.0", features = ["full"] }
 axum = "0.6.1"
 tower = "0.4.13"

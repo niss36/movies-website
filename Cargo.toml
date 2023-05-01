@@ -9,4 +9,4 @@ publish = false
 members = [".", "api", "core", "entity", "migration"]
 
 [dependencies]
-axum-example-api = { path = "api" }
+api = { path = "api" }

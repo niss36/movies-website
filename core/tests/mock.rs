@@ -1,6 +1,6 @@
 // mod prepare;
 
-// use axum_example_core::{Mutation, Query};
+// use core::{Mutation, Query};
 // use entity::post;
 // use prepare::prepare_mock_db;
 

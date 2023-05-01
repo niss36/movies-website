@@ -2,7 +2,7 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::Json;
 use axum::{routing::get, Router, Server};
-use axum_example_core::sea_orm::{Database, DatabaseConnection};
+use core::sea_orm::{Database, DatabaseConnection};
 use entity::movie;
 use migration::{Migrator, MigratorTrait};
 use serde::{Deserialize, Serialize};
@@ -51,7 +51,7 @@ struct FlashData {
 async fn list_movies(
     state: State<AppState>,
 ) -> Result<Json<Vec<movie::Model>>, (StatusCode, &'static str)> {
-    let movies = axum_example_core::get_all_movies(&state.conn)
+    let movies = core::get_all_movies(&state.conn)
         .await
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
 
@@ -62,7 +62,7 @@ async fn create_movie(
     state: State<AppState>,
     Json(data): Json<movie::Model>,
 ) -> Result<Json<movie::Model>, (StatusCode, &'static str)> {
-    let created_movie = axum_example_core::create_movie(&state.conn, data)
+    let created_movie = core::create_movie(&state.conn, data)
         .await
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
 
