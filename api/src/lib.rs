@@ -1,4 +1,4 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
 use axum::{routing::get, Router, Server};
@@ -29,6 +29,7 @@ async fn start() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/movies", get(list_movies).post(create_movie))
+        .route("/movies/:id", get(get_movie))
         .with_state(state);
 
     let addr = SocketAddr::from_str(&server_url).unwrap();
@@ -67,6 +68,18 @@ async fn create_movie(
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
 
     Ok(Json(created_movie))
+}
+
+async fn get_movie(
+    state: State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<Json<movie::Model>, (StatusCode, &'static str)> {
+    let movie = core::get_movie(&state.conn, id)
+        .await
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?
+        .ok_or_else(|| (StatusCode::NOT_FOUND, "Movie not found"))?;
+
+    Ok(Json(movie))
 }
 
 pub fn main() {
