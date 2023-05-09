@@ -29,7 +29,7 @@ async fn start() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/movies", get(list_movies).post(create_movie))
-        .route("/movies/:id", get(get_movie))
+        .route("/movies/:id", get(get_movie).delete(delete_movie))
         .with_state(state);
 
     let addr = SocketAddr::from_str(&server_url).unwrap();
@@ -80,6 +80,17 @@ async fn get_movie(
         .ok_or_else(|| (StatusCode::NOT_FOUND, "Movie not found"))?;
 
     Ok(Json(movie))
+}
+
+async fn delete_movie(
+    state: State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<Json<()>, (StatusCode, &'static str)> {
+    core::delete_movie(&state.conn, id)
+        .await
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
+
+    Ok(Json(()))
 }
 
 pub fn main() {

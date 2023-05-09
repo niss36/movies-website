@@ -13,3 +13,7 @@ pub async fn create_movie(db: &DbConn, data: movie::Model) -> Result<movie::Mode
 
     active_movie.save(db).await?.try_into()
 }
+
+pub async fn delete_movie(db: &DbConn, id: i32) -> Result<DeleteResult, DbErr> {
+    movie::Entity::delete_by_id(id).exec(db).await
+}
