@@ -4,7 +4,7 @@ use axum::Json;
 use axum::{routing::get, Router, Server};
 use core::sea_orm::{Database, DatabaseConnection};
 use entity::movie;
-use migration::{Migrator, MigratorTrait};
+use migration::{DbErr, Migrator, MigratorTrait};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::{env, net::SocketAddr};
@@ -29,7 +29,10 @@ async fn start() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/movies", get(list_movies).post(create_movie))
-        .route("/movies/:id", get(get_movie).delete(delete_movie))
+        .route(
+            "/movies/:id",
+            get(get_movie).delete(delete_movie).put(update_movie),
+        )
         .with_state(state);
 
     let addr = SocketAddr::from_str(&server_url).unwrap();
@@ -91,6 +94,21 @@ async fn delete_movie(
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
 
     Ok(Json(()))
+}
+
+async fn update_movie(
+    state: State<AppState>,
+    Path(id): Path<i32>,
+    Json(data): Json<movie::Model>,
+) -> Result<Json<movie::Model>, (StatusCode, String)> {
+    let movie = core::update_movie(&state.conn, id, data)
+        .await
+        .map_err(|err| match err {
+            DbErr::RecordNotFound(message) => (StatusCode::NOT_FOUND, message),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, "Database error".into()),
+        })?;
+
+    Ok(Json(movie))
 }
 
 pub fn main() {
