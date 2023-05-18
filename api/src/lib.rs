@@ -3,6 +3,7 @@ use axum::http::StatusCode;
 use axum::Json;
 use axum::{routing::get, Router, Server};
 use core::sea_orm::{Database, DatabaseConnection};
+use core::PartialMovie;
 use entity::movie;
 use migration::{DbErr, Migrator, MigratorTrait};
 use serde::{Deserialize, Serialize};
@@ -31,7 +32,10 @@ async fn start() -> anyhow::Result<()> {
         .route("/movies", get(list_movies).post(create_movie))
         .route(
             "/movies/:id",
-            get(get_movie).delete(delete_movie).put(update_movie),
+            get(get_movie)
+                .delete(delete_movie)
+                .put(update_movie)
+                .patch(patch_movie),
         )
         .with_state(state);
 
@@ -102,6 +106,21 @@ async fn update_movie(
     Json(data): Json<movie::Model>,
 ) -> Result<Json<movie::Model>, (StatusCode, String)> {
     let movie = core::update_movie(&state.conn, id, data)
+        .await
+        .map_err(|err| match err {
+            DbErr::RecordNotFound(message) => (StatusCode::NOT_FOUND, message),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, "Database error".into()),
+        })?;
+
+    Ok(Json(movie))
+}
+
+async fn patch_movie(
+    state: State<AppState>,
+    Path(id): Path<i32>,
+    Json(data): Json<PartialMovie>,
+) -> Result<Json<movie::Model>, (StatusCode, String)> {
+    let movie = core::update_movie_partial(&state.conn, id, data)
         .await
         .map_err(|err| match err {
             DbErr::RecordNotFound(message) => (StatusCode::NOT_FOUND, message),
