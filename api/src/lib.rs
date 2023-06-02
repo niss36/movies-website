@@ -1,14 +1,18 @@
 use axum::extract::{Path, State};
-use axum::http::StatusCode;
+use axum::response::IntoResponse;
 use axum::Json;
 use axum::{routing::get, Router, Server};
-use core::sea_orm::{Database, DatabaseConnection};
+use core::sea_orm::{Database, DatabaseConnection, DeleteResult};
 use core::PartialMovie;
 use entity::movie;
+use macros::IntoResponse;
 use migration::{DbErr, Migrator, MigratorTrait};
+use responses::{DatabaseError, NoContent, NotFound};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::{env, net::SocketAddr};
+
+mod responses;
 
 #[tokio::main]
 async fn start() -> anyhow::Result<()> {
@@ -56,78 +60,100 @@ struct FlashData {
     message: String,
 }
 
-async fn list_movies(
-    state: State<AppState>,
-) -> Result<Json<Vec<movie::Model>>, (StatusCode, &'static str)> {
-    let movies = core::get_all_movies(&state.conn)
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
+#[derive(IntoResponse)]
+enum ListMoviesResponses {
+    Success(#[json] Vec<movie::Model>),
+    DatabaseError(DatabaseError),
+}
 
-    Ok(Json(movies))
+async fn list_movies(state: State<AppState>) -> ListMoviesResponses {
+    match core::get_all_movies(&state.conn).await {
+        Ok(movies) => ListMoviesResponses::Success(movies),
+        Err(_) => ListMoviesResponses::DatabaseError(DatabaseError),
+    }
+}
+
+#[derive(IntoResponse)]
+enum CreateMovieResponses {
+    Success(#[json] movie::Model),
+    DatabaseError(DatabaseError),
 }
 
 async fn create_movie(
     state: State<AppState>,
     Json(data): Json<movie::Model>,
-) -> Result<Json<movie::Model>, (StatusCode, &'static str)> {
-    let created_movie = core::create_movie(&state.conn, data)
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
-
-    Ok(Json(created_movie))
+) -> CreateMovieResponses {
+    match core::create_movie(&state.conn, data).await {
+        Ok(created_movie) => CreateMovieResponses::Success(created_movie),
+        Err(_) => CreateMovieResponses::DatabaseError(DatabaseError),
+    }
 }
 
-async fn get_movie(
-    state: State<AppState>,
-    Path(id): Path<i32>,
-) -> Result<Json<movie::Model>, (StatusCode, &'static str)> {
-    let movie = core::get_movie(&state.conn, id)
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?
-        .ok_or_else(|| (StatusCode::NOT_FOUND, "Movie not found"))?;
-
-    Ok(Json(movie))
+#[derive(IntoResponse)]
+enum GetMovieResponses {
+    Success(#[json] movie::Model),
+    NotFound(NotFound),
+    DatabaseError(DatabaseError),
 }
 
-async fn delete_movie(
-    state: State<AppState>,
-    Path(id): Path<i32>,
-) -> Result<Json<()>, (StatusCode, &'static str)> {
-    core::delete_movie(&state.conn, id)
-        .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Database error"))?;
+async fn get_movie(state: State<AppState>, Path(id): Path<i32>) -> GetMovieResponses {
+    match core::get_movie(&state.conn, id).await {
+        Ok(Some(movie)) => GetMovieResponses::Success(movie),
+        Ok(None) => {
+            GetMovieResponses::NotFound(NotFound(format!("Movie with id `{id}` not found")))
+        }
+        Err(_) => GetMovieResponses::DatabaseError(DatabaseError),
+    }
+}
 
-    Ok(Json(()))
+#[derive(IntoResponse)]
+enum DeleteMovieResponses {
+    Success(NoContent),
+    NotFound(NotFound),
+    DatabaseError(DatabaseError),
+}
+
+async fn delete_movie(state: State<AppState>, Path(id): Path<i32>) -> DeleteMovieResponses {
+    match core::delete_movie(&state.conn, id).await {
+        Ok(DeleteResult { rows_affected }) if rows_affected > 0 => {
+            DeleteMovieResponses::Success(NoContent)
+        }
+        Ok(_) => {
+            DeleteMovieResponses::NotFound(NotFound(format!("Movie with id `{id}` not found")))
+        }
+        Err(_) => DeleteMovieResponses::DatabaseError(DatabaseError),
+    }
+}
+
+#[derive(IntoResponse)]
+enum UpdateMovieResponses {
+    Success(#[json] movie::Model),
+    NotFound(NotFound),
+    DatabaseError(DatabaseError),
 }
 
 async fn update_movie(
     state: State<AppState>,
     Path(id): Path<i32>,
     Json(data): Json<movie::Model>,
-) -> Result<Json<movie::Model>, (StatusCode, String)> {
-    let movie = core::update_movie(&state.conn, id, data)
-        .await
-        .map_err(|err| match err {
-            DbErr::RecordNotFound(message) => (StatusCode::NOT_FOUND, message),
-            _ => (StatusCode::INTERNAL_SERVER_ERROR, "Database error".into()),
-        })?;
-
-    Ok(Json(movie))
+) -> UpdateMovieResponses {
+    match core::update_movie(&state.conn, id, data).await {
+        Ok(movie) => UpdateMovieResponses::Success(movie),
+        Err(DbErr::RecordNotFound(message)) => UpdateMovieResponses::NotFound(NotFound(message)),
+        Err(_) => UpdateMovieResponses::DatabaseError(DatabaseError),
+    }
 }
 
 async fn patch_movie(
     state: State<AppState>,
     Path(id): Path<i32>,
     Json(data): Json<PartialMovie>,
-) -> Result<Json<movie::Model>, (StatusCode, String)> {
-    let movie = core::update_movie_partial(&state.conn, id, data)
-        .await
-        .map_err(|err| match err {
-            DbErr::RecordNotFound(message) => (StatusCode::NOT_FOUND, message),
-            _ => (StatusCode::INTERNAL_SERVER_ERROR, "Database error".into()),
-        })?;
-
-    Ok(Json(movie))
+) -> UpdateMovieResponses {
+    match core::update_movie_partial(&state.conn, id, data).await {
+        Ok(movie) => UpdateMovieResponses::Success(movie),
+        Err(DbErr::RecordNotFound(message)) => UpdateMovieResponses::NotFound(NotFound(message)),
+        Err(_) => UpdateMovieResponses::DatabaseError(DatabaseError),
+    }
 }
 
 pub fn main() {
