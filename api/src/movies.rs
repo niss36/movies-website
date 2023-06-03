@@ -54,7 +54,7 @@ enum ListMoviesResponses {
     DatabaseError(#[ref_response] DatabaseError),
 }
 
-#[utoipa::path(get, path = "/movies", responses(ListMoviesResponses))]
+#[utoipa::path(get, path = "/movies", responses(ListMoviesResponses), tag = "movies")]
 async fn list_movies(state: State<MoviesState>) -> ListMoviesResponses {
     match core::get_all_movies(&state.db).await {
         Ok(movies) => ListMoviesResponses::Success(movies),
@@ -76,6 +76,7 @@ enum CreateMovieResponses {
         path = "/movies",
         request_body = Movie,
         responses(CreateMovieResponses),
+        tag = "movies"
     )]
 async fn create_movie(state: State<MoviesState>, Json(data): Json<Movie>) -> CreateMovieResponses {
     match core::create_movie(&state.db, data).await {
@@ -103,6 +104,7 @@ enum GetMovieResponses {
             ("id", description = "Movie id")
         ),
         responses(GetMovieResponses),
+        tag = "movies"
     )]
 async fn get_movie(state: State<MoviesState>, Path(id): Path<i32>) -> GetMovieResponses {
     match core::get_movie(&state.db, id).await {
@@ -133,6 +135,7 @@ enum DeleteMovieResponses {
             ("id", description = "Movie id")
         ),
         responses(DeleteMovieResponses),
+        tag = "movies"
     )]
 async fn delete_movie(state: State<MoviesState>, Path(id): Path<i32>) -> DeleteMovieResponses {
     match core::delete_movie(&state.db, id).await {
@@ -166,6 +169,7 @@ enum UpdateMovieResponses {
         ),
         request_body = Movie,
         responses(UpdateMovieResponses),
+        tag = "movies"
     )]
 async fn update_movie(
     state: State<MoviesState>,
@@ -187,6 +191,7 @@ async fn update_movie(
         ),
         request_body = PartialMovie,
         responses(UpdateMovieResponses),
+        tag = "movies"
     )]
 async fn patch_movie(
     state: State<MoviesState>,
