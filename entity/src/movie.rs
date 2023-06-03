@@ -12,7 +12,7 @@ pub struct Model {
     #[serde(skip_deserializing)]
     pub id: i32,
     pub title: String,
-    pub release_date: DateTime,
+    pub release_date: chrono::DateTime<chrono::Utc>,
     pub poster_url: String,
     #[sea_orm(column_type = "Text")]
     pub description: String,
