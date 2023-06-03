@@ -2,6 +2,7 @@ use ::entity::movie;
 use sea_orm::prelude::DateTime;
 use sea_orm::*;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 pub async fn create_movie(db: &DbConn, data: movie::Model) -> Result<movie::Model, DbErr> {
     let active_movie = movie::ActiveModel {
@@ -41,7 +42,7 @@ pub async fn update_movie(db: &DbConn, id: i32, data: movie::Model) -> Result<mo
     .await
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct PartialMovie {
     pub title: Option<String>,
     pub release_date: Option<DateTime>,

@@ -1,5 +1,7 @@
 use axum::{http::StatusCode, response::IntoResponse};
+use utoipa::ToResponse;
 
+#[derive(ToResponse)]
 pub struct NoContent;
 impl IntoResponse for NoContent {
     fn into_response(self) -> axum::response::Response {
@@ -7,6 +9,7 @@ impl IntoResponse for NoContent {
     }
 }
 
+#[derive(ToResponse)]
 pub struct NotFound(pub String);
 impl IntoResponse for NotFound {
     fn into_response(self) -> axum::response::Response {
@@ -16,6 +19,7 @@ impl IntoResponse for NotFound {
     }
 }
 
+#[derive(ToResponse)]
 pub struct DatabaseError;
 impl IntoResponse for DatabaseError {
     fn into_response(self) -> axum::response::Response {
