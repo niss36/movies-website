@@ -1375,7 +1375,6 @@ dependencies = [
  "clap 4.3.1",
  "serde",
  "serde_json",
- "utoipa",
 ]
 
 [[package]]

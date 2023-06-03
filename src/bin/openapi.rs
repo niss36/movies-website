@@ -1,8 +1,7 @@
 use std::io::stdout;
 
-use api::ApiDocs;
+use api::get_api_docs;
 use clap::Parser;
-use utoipa::OpenApi;
 
 #[derive(Debug, Parser)]
 struct Cli {
@@ -14,7 +13,7 @@ struct Cli {
 fn main() -> serde_json::Result<()> {
     let args = Cli::parse();
 
-    let api_docs = ApiDocs::openapi();
+    let api_docs = get_api_docs();
 
     if args.pretty {
         serde_json::to_writer_pretty(stdout(), &api_docs)
