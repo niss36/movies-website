@@ -54,6 +54,7 @@ enum ListMoviesResponses {
     DatabaseError(#[json] ApiErrorBody),
 }
 
+/// Get all movies
 #[utoipa::path(get, path = "/movies", responses(ListMoviesResponses), tag = "movies")]
 async fn list_movies(state: State<MoviesState>) -> ListMoviesResponses {
     match core::get_all_movies(&state.db).await {
@@ -71,6 +72,7 @@ enum CreateMovieResponses {
     DatabaseError(#[json] ApiErrorBody),
 }
 
+/// Create a movie
 #[utoipa::path(
         post,
         path = "/movies",
@@ -97,6 +99,7 @@ enum GetMovieResponses {
     DatabaseError(#[json] ApiErrorBody),
 }
 
+/// Get an existing movie by id
 #[utoipa::path(
         get,
         path = "/movies/{id}",
@@ -128,6 +131,7 @@ enum DeleteMovieResponses {
     DatabaseError(#[json] ApiErrorBody),
 }
 
+/// Delete an existing movie by id
 #[utoipa::path(
         delete,
         path = "/movies/{id}",
@@ -159,6 +163,7 @@ enum UpdateMovieResponses {
     DatabaseError(#[json] ApiErrorBody),
 }
 
+/// Update an existing movie by id
 #[utoipa::path(
         put,
         path = "/movies/{id}",
@@ -183,6 +188,7 @@ async fn update_movie(
     }
 }
 
+/// Partially update an existing movie by id
 #[utoipa::path(
         patch,
         path = "/movies/{id}",
