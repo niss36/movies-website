@@ -10,7 +10,7 @@ use macros::IntoResponse;
 use migration::DbErr;
 use utoipa::{IntoResponses, OpenApi};
 
-use crate::responses::{DatabaseError, NoContent, NotFound};
+use crate::responses::{database_error, ApiErrorBody};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -22,7 +22,7 @@ use crate::responses::{DatabaseError, NoContent, NotFound};
         update_movie,
         patch_movie,
     ),
-    components(schemas(Movie, PartialMovie), responses(NoContent, NotFound, DatabaseError)),
+    components(schemas(Movie, PartialMovie, ApiErrorBody)),
     tags((name = "movies", description = "Rust Movies API"))
 )]
 pub struct MoviesApiDocs;
@@ -51,14 +51,14 @@ enum ListMoviesResponses {
     Success(#[json] Vec<Movie>),
 
     #[response(status = INTERNAL_SERVER_ERROR)]
-    DatabaseError(#[ref_response] DatabaseError),
+    DatabaseError(#[json] ApiErrorBody),
 }
 
 #[utoipa::path(get, path = "/movies", responses(ListMoviesResponses), tag = "movies")]
 async fn list_movies(state: State<MoviesState>) -> ListMoviesResponses {
     match core::get_all_movies(&state.db).await {
         Ok(movies) => ListMoviesResponses::Success(movies),
-        Err(_) => ListMoviesResponses::DatabaseError(DatabaseError),
+        Err(_) => ListMoviesResponses::DatabaseError(database_error()),
     }
 }
 
@@ -68,7 +68,7 @@ enum CreateMovieResponses {
     Success(#[json] Movie),
 
     #[response(status = INTERNAL_SERVER_ERROR)]
-    DatabaseError(#[ref_response] DatabaseError),
+    DatabaseError(#[json] ApiErrorBody),
 }
 
 #[utoipa::path(
@@ -81,7 +81,7 @@ enum CreateMovieResponses {
 async fn create_movie(state: State<MoviesState>, Json(data): Json<Movie>) -> CreateMovieResponses {
     match core::create_movie(&state.db, data).await {
         Ok(created_movie) => CreateMovieResponses::Success(created_movie),
-        Err(_) => CreateMovieResponses::DatabaseError(DatabaseError),
+        Err(_) => CreateMovieResponses::DatabaseError(database_error()),
     }
 }
 
@@ -91,10 +91,10 @@ enum GetMovieResponses {
     Success(#[json] Movie),
 
     #[response(status = NOT_FOUND)]
-    NotFound(#[ref_response] NotFound),
+    NotFound(#[json] ApiErrorBody),
 
     #[response(status = INTERNAL_SERVER_ERROR)]
-    DatabaseError(#[ref_response] DatabaseError),
+    DatabaseError(#[json] ApiErrorBody),
 }
 
 #[utoipa::path(
@@ -109,23 +109,23 @@ enum GetMovieResponses {
 async fn get_movie(state: State<MoviesState>, Path(id): Path<i32>) -> GetMovieResponses {
     match core::get_movie(&state.db, id).await {
         Ok(Some(movie)) => GetMovieResponses::Success(movie),
-        Ok(None) => {
-            GetMovieResponses::NotFound(NotFound(format!("Movie with id `{id}` not found")))
-        }
-        Err(_) => GetMovieResponses::DatabaseError(DatabaseError),
+        Ok(None) => GetMovieResponses::NotFound(ApiErrorBody {
+            message: format!("Movie with id `{id}` not found"),
+        }),
+        Err(_) => GetMovieResponses::DatabaseError(database_error()),
     }
 }
 
 #[derive(IntoResponse, IntoResponses)]
 enum DeleteMovieResponses {
     #[response(status = NO_CONTENT)]
-    Success(#[ref_response] NoContent),
+    Success,
 
     #[response(status = NOT_FOUND)]
-    NotFound(#[ref_response] NotFound),
+    NotFound(#[json] ApiErrorBody),
 
     #[response(status = INTERNAL_SERVER_ERROR)]
-    DatabaseError(#[ref_response] DatabaseError),
+    DatabaseError(#[json] ApiErrorBody),
 }
 
 #[utoipa::path(
@@ -139,13 +139,11 @@ enum DeleteMovieResponses {
     )]
 async fn delete_movie(state: State<MoviesState>, Path(id): Path<i32>) -> DeleteMovieResponses {
     match core::delete_movie(&state.db, id).await {
-        Ok(DeleteResult { rows_affected }) if rows_affected > 0 => {
-            DeleteMovieResponses::Success(NoContent)
-        }
-        Ok(_) => {
-            DeleteMovieResponses::NotFound(NotFound(format!("Movie with id `{id}` not found")))
-        }
-        Err(_) => DeleteMovieResponses::DatabaseError(DatabaseError),
+        Ok(DeleteResult { rows_affected }) if rows_affected > 0 => DeleteMovieResponses::Success,
+        Ok(_) => DeleteMovieResponses::NotFound(ApiErrorBody {
+            message: format!("Movie with id `{id}` not found"),
+        }),
+        Err(_) => DeleteMovieResponses::DatabaseError(database_error()),
     }
 }
 
@@ -155,10 +153,10 @@ enum UpdateMovieResponses {
     Success(#[json] Movie),
 
     #[response(status = NOT_FOUND)]
-    NotFound(#[ref_response] NotFound),
+    NotFound(#[json] ApiErrorBody),
 
     #[response(status = INTERNAL_SERVER_ERROR)]
-    DatabaseError(#[ref_response] DatabaseError),
+    DatabaseError(#[json] ApiErrorBody),
 }
 
 #[utoipa::path(
@@ -178,8 +176,10 @@ async fn update_movie(
 ) -> UpdateMovieResponses {
     match core::update_movie(&state.db, id, data).await {
         Ok(movie) => UpdateMovieResponses::Success(movie),
-        Err(DbErr::RecordNotFound(message)) => UpdateMovieResponses::NotFound(NotFound(message)),
-        Err(_) => UpdateMovieResponses::DatabaseError(DatabaseError),
+        Err(DbErr::RecordNotFound(message)) => {
+            UpdateMovieResponses::NotFound(ApiErrorBody { message })
+        }
+        Err(_) => UpdateMovieResponses::DatabaseError(database_error()),
     }
 }
 
@@ -200,7 +200,9 @@ async fn patch_movie(
 ) -> UpdateMovieResponses {
     match core::update_movie_partial(&state.db, id, data).await {
         Ok(movie) => UpdateMovieResponses::Success(movie),
-        Err(DbErr::RecordNotFound(message)) => UpdateMovieResponses::NotFound(NotFound(message)),
-        Err(_) => UpdateMovieResponses::DatabaseError(DatabaseError),
+        Err(DbErr::RecordNotFound(message)) => {
+            UpdateMovieResponses::NotFound(ApiErrorBody { message })
+        }
+        Err(_) => UpdateMovieResponses::DatabaseError(database_error()),
     }
 }
