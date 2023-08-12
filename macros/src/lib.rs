@@ -7,7 +7,7 @@ use syn::{parse_macro_input, DeriveInput};
 mod into_response;
 
 #[proc_macro_error]
-#[proc_macro_derive(IntoResponse, attributes(json))]
+#[proc_macro_derive(IntoResponse, attributes(response, json))]
 pub fn into_response(input: TokenStream) -> TokenStream {
     let DeriveInput {
         ident,
