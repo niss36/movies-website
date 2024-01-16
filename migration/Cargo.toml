@@ -10,11 +10,8 @@ path = "src/lib.rs"
 
 [dependencies]
 async-std = { version = "1", features = ["attributes", "tokio1"] }
-regex = { version = "1",  features = ["unicode-case"]}
+regex = { version = "1", features = ["unicode-case"] }
 
 [dependencies.sea-orm-migration]
-version = "0.11.0"
-features = [
-  "runtime-tokio-rustls",
-  "sqlx-postgres",
-]
+version = "0.12.11"
+features = ["runtime-tokio-rustls", "sqlx-postgres"]

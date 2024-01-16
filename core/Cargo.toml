@@ -12,12 +12,8 @@ utoipa = { version = "3.3.0", features = ["axum_extras", "chrono"] }
 chrono = { version = "0.4.26", default-features = false }
 
 [dependencies.sea-orm]
-version = "0.11.2" # sea-orm version
-features = [
-    "debug-print",
-    "runtime-tokio-rustls",
-    "sqlx-postgres",
-]
+version = "0.12.11"
+features = ["debug-print", "runtime-tokio-rustls", "sqlx-postgres"]
 
 [dev-dependencies]
 tokio = { version = "1.20.0", features = ["macros", "rt"] }

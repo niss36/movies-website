@@ -12,6 +12,4 @@ path = "src/lib.rs"
 serde = { version = "1", features = ["derive"] }
 utoipa = { version = "3.3.0", features = ["axum_extras", "chrono"] }
 chrono = { version = "0.4.26", default-features = false }
-
-[dependencies.sea-orm]
-version = "0.11.2" # sea-orm version
+sea-orm = "0.12.11"
