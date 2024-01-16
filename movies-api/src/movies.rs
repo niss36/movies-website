@@ -1,13 +1,13 @@
-use core::sea_orm::{DatabaseConnection, DeleteResult};
-use core::PartialMovie;
+use movies_core::sea_orm::{DatabaseConnection, DeleteResult};
+use movies_core::PartialMovie;
+use movies_entity::movie::Model as Movie;
+use movies_macros::IntoResponse;
+use movies_migration::DbErr;
 
 use axum::extract::{Path, State};
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Json, Router};
-use entity::movie::Model as Movie;
-use macros::IntoResponse;
-use migration::DbErr;
 use utoipa::{IntoResponses, OpenApi};
 
 use crate::responses::{database_error, ApiErrorBody};
@@ -57,7 +57,7 @@ enum ListMoviesResponses {
 /// Get all movies
 #[utoipa::path(get, path = "/movies", responses(ListMoviesResponses), tag = "movies")]
 async fn list_movies(state: State<MoviesState>) -> ListMoviesResponses {
-    match core::get_all_movies(&state.db).await {
+    match movies_core::get_all_movies(&state.db).await {
         Ok(movies) => ListMoviesResponses::Success(movies),
         Err(_) => ListMoviesResponses::DatabaseError(database_error()),
     }
@@ -81,7 +81,7 @@ enum CreateMovieResponses {
         tag = "movies"
     )]
 async fn create_movie(state: State<MoviesState>, Json(data): Json<Movie>) -> CreateMovieResponses {
-    match core::create_movie(&state.db, data).await {
+    match movies_core::create_movie(&state.db, data).await {
         Ok(created_movie) => CreateMovieResponses::Success(created_movie),
         Err(_) => CreateMovieResponses::DatabaseError(database_error()),
     }
@@ -110,7 +110,7 @@ enum GetMovieResponses {
         tag = "movies"
     )]
 async fn get_movie(state: State<MoviesState>, Path(id): Path<i32>) -> GetMovieResponses {
-    match core::get_movie(&state.db, id).await {
+    match movies_core::get_movie(&state.db, id).await {
         Ok(Some(movie)) => GetMovieResponses::Success(movie),
         Ok(None) => GetMovieResponses::NotFound(ApiErrorBody {
             message: format!("Movie with id `{id}` not found"),
@@ -142,7 +142,7 @@ enum DeleteMovieResponses {
         tag = "movies"
     )]
 async fn delete_movie(state: State<MoviesState>, Path(id): Path<i32>) -> DeleteMovieResponses {
-    match core::delete_movie(&state.db, id).await {
+    match movies_core::delete_movie(&state.db, id).await {
         Ok(DeleteResult { rows_affected }) if rows_affected > 0 => DeleteMovieResponses::Success,
         Ok(_) => DeleteMovieResponses::NotFound(ApiErrorBody {
             message: format!("Movie with id `{id}` not found"),
@@ -179,7 +179,7 @@ async fn update_movie(
     Path(id): Path<i32>,
     Json(data): Json<Movie>,
 ) -> UpdateMovieResponses {
-    match core::update_movie(&state.db, id, data).await {
+    match movies_core::update_movie(&state.db, id, data).await {
         Ok(movie) => UpdateMovieResponses::Success(movie),
         Err(DbErr::RecordNotFound(message)) => {
             UpdateMovieResponses::NotFound(ApiErrorBody { message })
@@ -204,7 +204,7 @@ async fn patch_movie(
     Path(id): Path<i32>,
     Json(data): Json<PartialMovie>,
 ) -> UpdateMovieResponses {
-    match core::update_movie_partial(&state.db, id, data).await {
+    match movies_core::update_movie_partial(&state.db, id, data).await {
         Ok(movie) => UpdateMovieResponses::Success(movie),
         Err(DbErr::RecordNotFound(message)) => {
             UpdateMovieResponses::NotFound(ApiErrorBody { message })

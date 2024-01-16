@@ -7,10 +7,17 @@ publish = false
 default-run = "movies-website"
 
 [workspace]
-members = [".", "api", "core", "entity", "migration", "macros"]
+members = [
+    ".",
+    "movies-api",
+    "movies-core",
+    "movies-entity",
+    "movies-macros",
+    "movies-migration",
+]
 
 [dependencies]
-api = { path = "api" }
 clap = { version = "4.3.0", features = ["derive"] }
+movies-api = { path = "movies-api" }
 serde = "1.0.163"
 serde_json = "1.0.96"

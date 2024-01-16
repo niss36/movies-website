@@ -1,5 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse};
-use macros::IntoResponse;
+use movies_macros::IntoResponse;
 
 /// Generated code:
 /// ```rust

@@ -1,4 +1,4 @@
-use ::entity::movie;
+use ::movies_entity::movie;
 use sea_orm::*;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;

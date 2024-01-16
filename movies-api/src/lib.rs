@@ -1,7 +1,7 @@
 use axum::{Router, Server};
-use core::sea_orm::Database;
-use migration::{Migrator, MigratorTrait};
 use movies::{movies_routes, MoviesApiDocs};
+use movies_core::sea_orm::Database;
+use movies_migration::{Migrator, MigratorTrait};
 use std::str::FromStr;
 use std::{env, net::SocketAddr};
 use utoipa::{openapi, OpenApi};

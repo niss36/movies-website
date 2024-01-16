@@ -1,4 +1,4 @@
-use ::entity::movie;
+use ::movies_entity::movie;
 use sea_orm::*;
 
 pub async fn get_all_movies(db: &DbConn) -> Result<Vec<movie::Model>, DbErr> {

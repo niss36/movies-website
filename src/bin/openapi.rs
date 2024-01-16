@@ -1,7 +1,7 @@
 use std::io::stdout;
 
-use api::get_api_docs;
 use clap::Parser;
+use movies_api::get_api_docs;
 
 #[derive(Debug, Parser)]
 struct Cli {

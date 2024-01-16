@@ -132,28 +132,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "080e9890a082662b09c1ad45f567faeeb47f22b5fb23895fbe1e651e718e25ca"
 
 [[package]]
-name = "api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "core",
- "dotenvy",
- "entity",
- "macros",
- "migration",
- "serde",
- "serde_json",
- "tokio",
- "tower",
- "tower-cookies",
- "tower-http",
- "tracing-subscriber",
- "utoipa",
- "utoipa-swagger-ui",
-]
-
-[[package]]
 name = "arrayvec"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -689,18 +667,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "core"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "entity",
- "sea-orm",
- "serde",
- "tokio",
- "utoipa",
-]
-
-[[package]]
 name = "core-foundation-sys"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -841,16 +807,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "entity"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "sea-orm",
- "serde",
- "utoipa",
 ]
 
 [[package]]
@@ -1464,17 +1420,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "macros"
-version = "0.1.0"
-dependencies = [
- "axum",
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn 2.0.48",
-]
-
-[[package]]
 name = "matchers"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1504,15 +1449,6 @@ name = "memchr"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "523dc4f511e55ab87b694dc30d0f820d60906ef06413f93d4d7a1385599cc149"
-
-[[package]]
-name = "migration"
-version = "0.1.0"
-dependencies = [
- "async-std",
- "regex",
- "sea-orm-migration",
-]
 
 [[package]]
 name = "mime"
@@ -1557,11 +1493,75 @@ dependencies = [
 ]
 
 [[package]]
+name = "movies-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "dotenvy",
+ "movies-core",
+ "movies-entity",
+ "movies-macros",
+ "movies-migration",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower",
+ "tower-cookies",
+ "tower-http",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
+]
+
+[[package]]
+name = "movies-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "movies-entity",
+ "sea-orm",
+ "serde",
+ "tokio",
+ "utoipa",
+]
+
+[[package]]
+name = "movies-entity"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "sea-orm",
+ "serde",
+ "utoipa",
+]
+
+[[package]]
+name = "movies-macros"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.48",
+]
+
+[[package]]
+name = "movies-migration"
+version = "0.1.0"
+dependencies = [
+ "async-std",
+ "regex",
+ "sea-orm-migration",
+]
+
+[[package]]
 name = "movies-website"
 version = "0.1.0"
 dependencies = [
- "api",
  "clap",
+ "movies-api",
  "serde",
  "serde_json",
 ]
