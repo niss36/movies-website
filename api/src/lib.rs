@@ -23,10 +23,10 @@ pub fn get_api_docs() -> openapi::OpenApi {
 
 #[tokio::main]
 async fn start() -> anyhow::Result<()> {
-    env::set_var("RUST_LOG", "debug");
+    dotenvy::dotenv()?;
+
     tracing_subscriber::fmt::init();
 
-    dotenvy::dotenv()?;
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
     let host = env::var("HOST").expect("HOST is not set in .env file");
     let port = env::var("PORT").expect("PORT is not set in .env file");
