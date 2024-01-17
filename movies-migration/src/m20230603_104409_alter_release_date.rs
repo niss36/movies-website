@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+use crate::m20220101_000001_create_table::Movie;
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -30,11 +32,4 @@ impl MigrationTrait for Migration {
             )
             .await
     }
-}
-
-/// Learn more at https://docs.rs/sea-query#iden
-#[derive(Iden)]
-enum Movie {
-    Table,
-    ReleaseDate,
 }
