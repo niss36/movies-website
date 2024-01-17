@@ -5,7 +5,11 @@ pub async fn prepare_test_db() -> Result<DatabaseConnection, DbErr> {
 
     let schema = Schema::new(DbBackend::Sqlite);
 
-    let statements = [schema.create_table_from_entity(movies_entity::movie::Entity)];
+    let statements = [
+        schema.create_table_from_entity(movies_entity::prelude::Movie),
+        schema.create_table_from_entity(movies_entity::prelude::Person),
+        schema.create_table_from_entity(movies_entity::prelude::Credit),
+    ];
 
     for statement in statements {
         db.execute(db.get_database_backend().build(&statement))
