@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-chrono = { version = "0.4.26", default-features = false }
-sea-orm = "0.12.11"
-serde = { version = "1", features = ["derive"] }
-utoipa = { version = "3.3.0", features = ["axum_extras", "chrono"] }
+chrono.workspace = true
+sea-orm.workspace = true
+serde.workspace = true
+utoipa.workspace = true
