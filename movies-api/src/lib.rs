@@ -1,9 +1,10 @@
-use axum::{Router, Server};
+use axum::Router;
 use movies::{movies_routes, MoviesApiDocs};
 use movies_core::sea_orm::Database;
 use movies_migration::{Migrator, MigratorTrait};
 use std::str::FromStr;
 use std::{env, net::SocketAddr};
+use tokio::net::TcpListener;
 use tracing::info;
 use utoipa::{openapi, OpenApi};
 use utoipa_swagger_ui::SwaggerUi;
@@ -43,11 +44,11 @@ async fn start() -> anyhow::Result<()> {
         .nest("/movies", movies_routes(conn));
 
     let addr = SocketAddr::from_str(&server_url).unwrap();
-    let server = Server::bind(&addr).serve(app.into_make_service());
+    let listener = TcpListener::bind(&addr).await?;
 
     info!("Server listening at {server_url}");
 
-    server.await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }
